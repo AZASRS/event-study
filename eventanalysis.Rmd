@@ -1,0 +1,57 @@
+---
+title: "Event Analysis"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+Graphical analysis of the event study.
+
+```{r, message=FALSE,warning=FALSE}
+eventname="Quarterly Rebal data"
+
+require(tidyr)
+require(ggplot2)
+
+eventdf=read.csv(paste(eventname,"results.csv"))
+categories=unique(eventdf$Category)
+benches=unique(eventdf$index)
+
+for (category in categories) {
+  eventdfsubcat=subset(eventdf,eventdf$Category==category&eventdf$AnncPlus<16)  
+  if(nrow(eventdfsubcat)==0) next(category)
+  for (bench in benches) {
+    eventdfsub=subset(eventdfsubcat,eventdfsubcat$index==bench)
+    if (nrow(eventdfsub)==0) next(bench)
+    eventplot=ggplot(eventdfsub,
+           aes(x=factor(AnncPlus),y=100*cum_annc_mu,color=IsEff))+
+      geom_boxplot()+
+      ylim(c(-5,5))+
+      ggtitle(paste(category,bench))+
+      xlab("Trading days after announcement")+
+      ylab("Cumulative excess return")
+    print(eventplot)
+    eventplot=ggplot(eventdfsub,
+           aes(x=factor(EffPlus),y=100*cum_eff_mu,color=IsEff))+
+      geom_boxplot()+
+      ylim(c(-5,5))+
+      ggtitle(paste(category,bench))+
+      xlab("Trading days after effective")+
+      ylab("Cumulative excess return")
+    print(eventplot)
+  }
+}
+event.table=aggregate(eventdf$cum_annc_mu*100,by=list(eventdf$AnncPlus,eventdf$Category),FUN=mean)
+colnames(event.table)=c("Category","Annc_Days_Plus","Excess_Return")
+event.tbl2=spread(event.table,Category,Excess_Return)
+rownames(event.tbl2)=event.tbl2[,1]
+event.tbl2=event.tbl2[,-1]
+print(round(event.tbl2,2))
+event.table=aggregate(eventdf$cum_eff_mu*100,by=list(eventdf$EffPlus,eventdf$Category),FUN=mean)
+colnames(event.table)=c("Category","Eff_Days_Plus","Excess_Return")
+event.tbl2=spread(event.table,Category,Excess_Return)
+rownames(event.tbl2)=event.tbl2[,1]
+event.tbl2=event.tbl2[,-1]
+print(round(event.tbl2,2))
+```
+

@@ -1,0 +1,10 @@
+---
+title: ''
+output: pdf_document
+classoption:landscape
+params:
+  graph: NA
+---
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+print(params$graph)
+```
